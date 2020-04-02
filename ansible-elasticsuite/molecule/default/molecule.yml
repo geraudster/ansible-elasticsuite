@@ -1,0 +1,26 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: instance
+    image: custom
+    dockerfile: Dockerfile
+    pull: False
+    command: /sbin/init
+    override_command: true
+#    tmpfs:
+#      - /run
+#      - /tmp
+#    volumes:
+#      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    env:
+      http_proxy: http://10.0.0.10:3142/
+      no_proxy: localhost
+    privileged: true
+provisioner:
+  name: ansible
+  log: True
+verifier:
+  name: ansible

@@ -1,0 +1,10 @@
+---
+# vars file for ansible-elasticsuite
+bootstrap:
+  password: abcdefghijk
+kibana:
+  username: kibana
+  password: kibana-password1234
+logstash:
+  username: logstash_system
+  password: logstash-password1234

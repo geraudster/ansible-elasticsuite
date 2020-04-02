@@ -1,0 +1,22 @@
+---
+# tasks file for ansible-elasticsuite
+- name: configure apt key
+  apt_key:
+    url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    state: present
+- name: configure repository
+  apt_repository:
+    repo: deb https://artifacts.elastic.co/packages/7.x/apt stable main
+    state: present
+- name: install package
+  apt:
+    name: elasticsearch
+- name: configure elasticsearch service
+  systemd:
+    name: elasticsearch
+    enabled: true
+    daemon_reload: true
+- name: ensure elasticsearch is running
+  service:
+    name: elasticsearch
+    state: started

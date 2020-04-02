@@ -1,0 +1,76 @@
+---
+# tasks file for ansible-elasticsuite
+- name: configure apt key
+  apt_key:
+    url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    state: present
+- name: configure repository
+  apt_repository:
+    repo: deb https://artifacts.elastic.co/packages/7.x/apt stable main
+    state: present
+- name: install package
+  apt:
+    name: elasticsearch
+- name: configure bootstrap.password
+  shell:
+    cmd: printf "{{ bootstrap.password }}" | /usr/share/elasticsearch/bin/elasticsearch-keystore add bootstrap.password --force -x && touch /etc/elasticsearch/keystore.done
+    creates: /etc/elasticsearch/keystore.done
+- name: customize configuration
+  template:
+    src: elasticsearch.yml.j2
+    dest: /etc/elasticsearch/elasticsearch.yml
+    owner: root
+    group: elasticsearch
+    mode: '0660'
+    backup: true
+  notify:
+    - restart elasticsearch
+- name: configure elasticsearch service
+  systemd:
+    name: elasticsearch
+    enabled: true
+    daemon_reload: true
+- name: ensure elasticsearch is running
+  service:
+    name: elasticsearch
+    state: started
+- name: configure credentials
+  uri:
+    url: 'http://localhost:9200/_security/user/{{ item.username }}/_password'
+    user: elastic
+    password: "{{ bootstrap.password }}"
+    method: POST
+    body: { "password": "{{ item.password }}" }
+    force_basic_auth: yes
+    status_code: 200
+    body_format: json
+    creates: "/etc/elasticsearch/credentials-{{ item.username }}.done"
+    dest: "/etc/elasticsearch/credentials-{{ item.username }}.done"
+  with_items:
+    - "{{ kibana }}"
+    - "{{ logstash }}"
+
+### Kibana
+
+- name: install kibana package
+  apt:
+    name: kibana
+- name: customize kibana configuration
+  template:
+    src: kibana.yml.j2
+    dest: /etc/kibana/kibana.yml
+    owner: root
+    group: root
+    mode: '0644'
+    backup: true
+  notify:
+    - restart kibana
+- name: configure kibana service
+  systemd:
+    name: kibana
+    enabled: true
+    daemon_reload: true
+- name: ensure kibana is running
+  service:
+    name: kibana
+    state: started

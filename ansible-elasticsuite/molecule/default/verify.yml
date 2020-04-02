@@ -1,0 +1,14 @@
+---
+# This is an example playbook to execute Ansible tests.
+
+- name: Verify Elasticsearch
+  hosts: instance
+  tasks:
+    - name: Check Elasticsearch port is open
+      wait_for: host=localhost port=9200 timeout=1
+
+- name: Verify Kibana
+  hosts: instance
+  tasks:
+    - name: Check Kibana port is open
+      wait_for: host=localhost port=5601 timeout=1
